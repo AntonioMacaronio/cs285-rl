@@ -64,7 +64,7 @@ env = {
 }
 
 
-@app.function(volumes={VOLUME_PATH: volume}, timeout=60 * 60 * 3, env=env, image=image, gpu=DEFAULT_GPU, cpu=DEFAULT_CPU, memory=DEFAULT_MEMORY)
+@app.function(volumes={VOLUME_PATH: volume}, timeout=60 * 60 * 5, env=env, image=image, gpu=DEFAULT_GPU, cpu=DEFAULT_CPU, memory=DEFAULT_MEMORY)
 def hw3_sac_remote(*args: str) -> None:
     import os
 
