@@ -130,6 +130,6 @@ def approx_kl_from_logprobs(
     #
     # The clamp to [-20, 20] is for numerical stability / variance control.
     
-    delta = torch.clamp(ref_logprobs - new_logprobs, [-log_ratio_clip, log_ratio_clip]) # [B, L-1]
+    delta = torch.clamp(ref_logprobs - new_logprobs, min=-log_ratio_clip, max=log_ratio_clip) # [B, L-1]
     per_token = torch.exp(delta) - delta - 1 # [B, L-1]
-    return masked_mean_per_row(per_token)
+    return masked_mean(per_token, mask)
