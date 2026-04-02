@@ -9,8 +9,8 @@ import torch
 @dataclass
 class RolloutBatch:
     input_ids: torch.Tensor          # [N, L]
-    attention_mask: torch.Tensor     # [N, L]
-    completion_mask: torch.Tensor    # [N, L-1] float
+    attention_mask: torch.Tensor     # [N, L] - this mask tells you the padding
+    completion_mask: torch.Tensor    # [N, L-1] float - this is the mask telling you which tokens are generated
     old_logprobs: torch.Tensor       # [N, L-1]
     ref_logprobs: torch.Tensor       # [N, L-1]
     rewards: torch.Tensor            # [N]
