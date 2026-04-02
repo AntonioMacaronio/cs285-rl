@@ -4,12 +4,13 @@ from typing import Tuple
 
 import torch
 import torch.nn.functional as F
+from einops import rearrange
 
 
 def compute_per_token_logprobs(
     model: torch.nn.Module,
-    input_ids: torch.Tensor,
-    attention_mask: torch.Tensor,
+    input_ids: torch.Tensor,        # [B, L], a datapoint in a btach has at most L tokens as the context
+    attention_mask: torch.Tensor,   # [B, L]
     *,
     enable_grad: bool = True,
 ) -> torch.Tensor:
@@ -39,16 +40,29 @@ def compute_per_token_logprobs(
     # - targets = input_ids[:, 1:] has shape [B, L-1]
     # - flatten to [(B*(L-1)), V] and [B*(L-1)]
     # - compute per-token NLL with reduction='none'
-    # - negate and reshape back to [B, L-1]
+    # - negate and reshape back to [B, L-1]ow
     #
     # Respect enable_grad: when enable_grad=False this function should not build an
     # autograd graph.
-    raise NotImplementedError("student TODO: compute_per_token_logprobs")
+
+    with torch.set_grad_enabled(enable_grad):
+        out = model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False)
+        logits = out.logits # [B, L, V] where B=batch_size, L=seq_length, V=vocab_size
+        
+        # Given tokens [0..0], predict token 1
+        # Given tokens [0..1], predict token 2
+        # ...
+        # Given tokens [0..L-2], predict token L-1
+        # These L-1 predictions, all computed in a single forward pass, is logits[:, :-1, :] # [B, L-1, V]
+        B, L_minus_1, V = logits[:, :-1, :].shape
+        
+        compacted_output = -F.cross_entropy(rearrange(logits[:, :-1, :], 'b l v -> (b l) v'), rearrange(input_ids[:, 1:], 'b l-> (b l)'), reduction='none') # negative log-likelihood or NLL
+        return compacted_output.reshape((B, L_minus_1))
 
 
 def build_completion_mask(
-    input_ids: torch.Tensor,
-    attention_mask: torch.Tensor,
+    input_ids: torch.Tensor,        # [B, L]
+    attention_mask: torch.Tensor,   # [B, L] - this is for padding for different length sequences!
     prompt_input_len: int,
     pad_token_id: int,
 ) -> torch.Tensor:
@@ -66,7 +80,12 @@ def build_completion_mask(
     # prompt_input_len is the (padded) prompt length before completion tokens were
     # appended. You can use attention_mask to exclude padding; pad_token_id is passed
     # for convenience but a direct attention-mask-based solution is fine.
-    raise NotImplementedError("student TODO: build_completion_mask")
+
+    B, L = input_ids.shape
+    mask = torch.zeros((B, L-1), device=input_ids.device)
+    mask[:, prompt_input_len-1:] = 1
+    mask = mask * attention_mask[:, 1:].float()
+    return mask
 
 
 def masked_sum(x: torch.Tensor, mask: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
@@ -82,9 +101,9 @@ def masked_mean_per_row(x: torch.Tensor, mask: torch.Tensor, eps: float = 1e-8) 
 
 
 def approx_kl_from_logprobs(
-    new_logprobs: torch.Tensor,
-    ref_logprobs: torch.Tensor,
-    mask: torch.Tensor,
+    new_logprobs: torch.Tensor, # [B, L-1]
+    ref_logprobs: torch.Tensor, # [B, L-1]
+    mask: torch.Tensor,         # [B, L-1]
     eps: float = 1e-8,
     log_ratio_clip: float = 20.0,
 ) -> torch.Tensor:
@@ -110,4 +129,7 @@ def approx_kl_from_logprobs(
     #                             = KL(p_new || p_ref).
     #
     # The clamp to [-20, 20] is for numerical stability / variance control.
-    raise NotImplementedError("student TODO: approx_kl_from_logprobs")
+    
+    delta = torch.clamp(ref_logprobs - new_logprobs, [-log_ratio_clip, log_ratio_clip]) # [B, L-1]
+    per_token = torch.exp(delta) - delta - 1 # [B, L-1]
+    return masked_mean_per_row(per_token)

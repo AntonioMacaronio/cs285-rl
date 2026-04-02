@@ -9,6 +9,7 @@ description = "CS 285/185 HW4: single-GPU LoRA LLM RL training"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "einops>=0.8.2",
   "modal>=1.0.0",
 ]
 

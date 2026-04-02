@@ -49,4 +49,5 @@ def iter_minibatches(
     # - Slice ALL tensor fields consistently with the same minibatch indices.
     # - Keep task_names / completion_texts aligned with the same indices when present.
     # - If device is not None, move the minibatch to that device before yielding.
+    
     raise NotImplementedError("student TODO: iter_minibatches")
