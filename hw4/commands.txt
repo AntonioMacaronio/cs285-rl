@@ -1,7 +1,7 @@
-uv run --detach scripts/modal_train.py -- \
+CUDA_VISIBLE_DEVICES=0 python -u -m hw4.train \
 --task format_copy \
 --algo grpo \
---output_dir /vol/runs/modal_format_copy_grpo \
+--output_dir ./runs/format_copy_grpo \
 --steps 51 \
 --batch_size 8 \
 --group_size 6 \
@@ -22,14 +22,14 @@ uv run --detach scripts/modal_train.py -- \
 --sample_log_n 6 \
 --eval_interval 50 \
 --save_interval 50 \
---warmup_steps 10
+--warmup_steps 10 &
 
 
 
-uv run --detach scripts/modal_train.py -- \
+CUDA_VISIBLE_DEVICES=1 python -u -m hw4.train \
 --task format_copy \
 --algo reinforce \
---output_dir /vol/runs/modal_format_copy_reinforce \
+--output_dir ./runs/format_copy_reinforce \
 --steps 51 \
 --batch_size 8 \
 --group_size 6 \
@@ -48,14 +48,14 @@ uv run --detach scripts/modal_train.py -- \
 --sample_log_n 6 \
 --eval_interval 50 \
 --save_interval 50 \
---warmup_steps 10
+--warmup_steps 10 &
 
 
 
-uv run --detach scripts/modal_train.py -- \
+CUDA_VISIBLE_DEVICES=2 python -u -m hw4.train \
 --task math_hard \
 --algo reinforce \
---output_dir /vol/runs/modal_math_hard_reinforce \
+--output_dir ./runs/math_hard_reinforce \
 --steps 201 \
 --batch_size 8 \
 --group_size 8 \
@@ -77,15 +77,15 @@ uv run --detach scripts/modal_train.py -- \
 --sample_log_n 8 \
 --cuda_empty_cache_interval 50 \
 --eval_interval 100 \
---save_interval 100
+--save_interval 100 &
 
 
 
 
-uv run --detach scripts/modal_train.py -- \
+CUDA_VISIBLE_DEVICES=3 python -u -m hw4.train \
 --task math_hard \
 --algo grpo \
---output_dir /vol/runs/modal_math_hard_grpo \
+--output_dir ./runs/math_hard_grpo \
 --steps 501 \
 --batch_size 8 \
 --group_size 8 \
@@ -109,4 +109,14 @@ uv run --detach scripts/modal_train.py -- \
 --sample_log_n 8 \
 --cuda_empty_cache_interval 50 \
 --eval_interval 100 \
---save_interval 100
+--save_interval 100 &
+
+
+# Creating submission
+python -u -m hw4.gradescope_bundle \
+--run_dir ./runs/format_copy_grpo \
+--run_dir ./runs/format_copy_reinforce \
+--run_dir ./runs/math_hard_grpo \
+--run_dir ./runs/math_hard_reinforce \
+--output_dir ./submissions/hw4_gradescope_submission \
+--overwrite

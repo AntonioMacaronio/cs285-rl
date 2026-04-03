@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# 1) ppo_epochs=4 (baseline is 2)
+CUDA_VISIBLE_DEVICES=0 python -u -m hw4.train \
+--task format_copy \
+--algo grpo \
+--output_dir ./runs/format_copy_grpo_ppo_epochs_4 \
+--steps 51 \
+--batch_size 8 \
+--group_size 6 \
+--min_new_tokens 1 \
+--max_new_tokens 24 \
+--lr 3e-5 \
+--ppo_epochs 4 \
+--minibatch_size 8 \
+--grad_accum_steps 6 \
+--clip_eps 0.2 \
+--kl_coef 0.05 \
+--max_grad_norm 0.5 \
+--wandb_enabled \
+--wandb_project llm-rl-hw4 \
+--wandb_name format_copy_grpo_ppo_epochs_4 \
+--sample_markdown_log_interval 1 \
+--sample_log_interval 10 \
+--sample_log_n 6 \
+--eval_interval 50 \
+--save_interval 50 \
+--warmup_steps 10 &
+
+# 2) smaller kl_coef=0.01 (baseline is 0.05)
+CUDA_VISIBLE_DEVICES=1 python -u -m hw4.train \
+--task format_copy \
+--algo grpo \
+--output_dir ./runs/format_copy_grpo_kl_0.01 \
+--steps 51 \
+--batch_size 8 \
+--group_size 6 \
+--min_new_tokens 1 \
+--max_new_tokens 24 \
+--lr 3e-5 \
+--ppo_epochs 2 \
+--minibatch_size 8 \
+--grad_accum_steps 6 \
+--clip_eps 0.2 \
+--kl_coef 0.01 \
+--max_grad_norm 0.5 \
+--wandb_enabled \
+--wandb_project llm-rl-hw4 \
+--wandb_name format_copy_grpo_kl_0.01 \
+--sample_markdown_log_interval 1 \
+--sample_log_interval 10 \
+--sample_log_n 6 \
+--eval_interval 50 \
+--save_interval 50 \
+--warmup_steps 10 &
+
+# 3) larger kl_coef=0.2 (baseline is 0.05)
+CUDA_VISIBLE_DEVICES=2 python -u -m hw4.train \
+--task format_copy \
+--algo grpo \
+--output_dir ./runs/format_copy_grpo_kl_0.2 \
+--steps 51 \
+--batch_size 8 \
+--group_size 6 \
+--min_new_tokens 1 \
+--max_new_tokens 24 \
+--lr 3e-5 \
+--ppo_epochs 2 \
+--minibatch_size 8 \
+--grad_accum_steps 6 \
+--clip_eps 0.2 \
+--kl_coef 0.2 \
+--max_grad_norm 0.5 \
+--wandb_enabled \
+--wandb_project llm-rl-hw4 \
+--wandb_name format_copy_grpo_kl_0.2 \
+--sample_markdown_log_interval 1 \
+--sample_log_interval 10 \
+--sample_log_n 6 \
+--eval_interval 50 \
+--save_interval 50 \
+--warmup_steps 10 &
+
+# 4) clip_eps=0.1 (baseline is 0.2)
+CUDA_VISIBLE_DEVICES=3 python -u -m hw4.train \
+--task format_copy \
+--algo grpo \
+--output_dir ./runs/format_copy_grpo_clip_0.1 \
+--steps 51 \
+--batch_size 8 \
+--group_size 6 \
+--min_new_tokens 1 \
+--max_new_tokens 24 \
+--lr 3e-5 \
+--ppo_epochs 2 \
+--minibatch_size 8 \
+--grad_accum_steps 6 \
+--clip_eps 0.1 \
+--kl_coef 0.05 \
+--max_grad_norm 0.5 \
+--wandb_enabled \
+--wandb_project llm-rl-hw4 \
+--wandb_name format_copy_grpo_clip_0.1 \
+--sample_markdown_log_interval 1 \
+--sample_log_interval 10 \
+--sample_log_n 6 \
+--eval_interval 50 \
+--save_interval 50 \
+--warmup_steps 10 &
+
+# 5) grad_accum_steps=1 (baseline is 6)
+CUDA_VISIBLE_DEVICES=4 python -u -m hw4.train \
+--task format_copy \
+--algo grpo \
+--output_dir ./runs/format_copy_grpo_grad_accum_1 \
+--steps 51 \
+--batch_size 8 \
+--group_size 6 \
+--min_new_tokens 1 \
+--max_new_tokens 24 \
+--lr 3e-5 \
+--ppo_epochs 2 \
+--minibatch_size 8 \
+--grad_accum_steps 1 \
+--clip_eps 0.2 \
+--kl_coef 0.05 \
+--max_grad_norm 0.5 \
+--wandb_enabled \
+--wandb_project llm-rl-hw4 \
+--wandb_name format_copy_grpo_grad_accum_1 \
+--sample_markdown_log_interval 1 \
+--sample_log_interval 10 \
+--sample_log_n 6 \
+--eval_interval 50 \
+--save_interval 50 \
+--warmup_steps 10 &
