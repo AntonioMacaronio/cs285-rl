@@ -25,7 +25,7 @@ class LoadedInferenceModel:
 
 
 def _build_model_kwargs(dtype: torch.dtype) -> Dict[str, Any]:
-    return {"dtype": dtype}
+    return {"torch_dtype": dtype}
 
 
 def _prepare_tokenizer(model_name: str) -> PreTrainedTokenizerBase:
@@ -110,6 +110,7 @@ def load_lora_policy_model_and_tokenizer(
     base = AutoModelForCausalLM.from_pretrained(
         model_name,
         **_build_model_kwargs(dtype=dtype),
+        attn_implementation="flash_attention_2",
     )
     if grad_checkpointing:
         base.gradient_checkpointing_enable()
@@ -168,6 +169,7 @@ def load_inference_model_and_tokenizer(
     base = AutoModelForCausalLM.from_pretrained(
         model_name,
         **_build_model_kwargs(dtype=dtype),
+        attn_implementation="flash_attention_2",
     )
     if adapter_path is not None:
         model = PeftModel.from_pretrained(base, adapter_path, is_trainable=False)
