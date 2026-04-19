@@ -54,18 +54,29 @@ class SACBCAgent(nn.Module):
     @torch.compile
     def update_q(
         self,
-        observations: torch.Tensor,
-        actions: torch.Tensor,
-        rewards: torch.Tensor,
-        next_observations: torch.Tensor,
-        dones: torch.Tensor,
+        observations: torch.Tensor,       # [B, obs_dim]
+        actions: torch.Tensor,            # [B, action_dim]
+        rewards: torch.Tensor,            # [B]
+        next_observations: torch.Tensor,  # [B, obs_dim]
+        dones: torch.Tensor,              # [B]
     ) -> dict:
         """
         Update Q(s, a)
         """
         # TODO(student): Compute the Q loss
-        q = ...
-        loss = ...
+        q = self.critic(observations, actions) # [2, B]
+
+        # sample next action from actor
+        next_actions_dist = self.actor(next_observations)
+        next_actions = next_actions_dist.sample() # [B, action_dim]
+
+        # compute target values from target critic networks
+        with torch.no_grad():
+            target_q = self.target_critic(next_observations, next_actions) # [2, B]
+            target_q = target_q.mean(dim=0) # [B]
+            target_v = rewards + self.discount * (1-dones) * target_q # [B]
+        
+        loss = ((q - target_v.unsqueeze(0)) ** 2).mean()
 
         self.critic_optimizer.zero_grad()
         loss.backward()
@@ -81,19 +92,22 @@ class SACBCAgent(nn.Module):
     @torch.compile
     def update_actor(
         self,
-        observations: torch.Tensor,
-        actions: torch.Tensor,
+        observations: torch.Tensor, # [B, obs_dim]
+        actions: torch.Tensor,      # [B, action_dim]
     ):
         """
         Update the actor
         """
         # TODO(student): Compute the actor loss
-        q_loss = ...
+        q_loss = -self.critic(observations, actions).mean(dim=0)
 
-        mses = ...
-        bc_loss = ...
+        actions_actor_dist = self.actor(observations) 
+        actions_actor = actions_actor_dist.rsample() # [B, action_dim]
+        action_size = actions_actor.shape[1]
+        mses = ((actions_actor - actions) ** 2).mean()
+        bc_loss = self.alpha / action_size * mses
 
-        entropy_loss = ...
+        entropy_loss = self.beta * actions_actor_dist.entropy()
 
         loss = q_loss + bc_loss + entropy_loss
 
