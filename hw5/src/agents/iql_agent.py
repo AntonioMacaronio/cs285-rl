@@ -60,7 +60,7 @@ class IQLAgent(nn.Module):
         """
         # TODO(student): Implement the expectile loss
         # Here I'm assuming the adv = Q - V
-        return torch.abs(expectile - torch.where(-adv > 0, 1, 0)) * (adv**2)
+        return (torch.abs(expectile - (adv < 0).float()) * (adv ** 2)).mean()
 
     @torch.compile
     def update_v(
@@ -74,7 +74,7 @@ class IQLAgent(nn.Module):
         # TODO(student): Compute the value loss
         v = self.value(observations)
         with torch.no_grad():
-            q_target = torch.min(self.target_critic(observations, actions))
+            q_target = self.target_critic(observations, actions).min(dim=0).values
         adv = q_target - v
         loss = IQLAgent.iql_expectile_loss(adv, self.expectile)
 
