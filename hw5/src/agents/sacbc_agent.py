@@ -99,15 +99,16 @@ class SACBCAgent(nn.Module):
         Update the actor
         """
         # TODO(student): Compute the actor loss
-        q_loss = -self.critic(observations, actions).mean(dim=0)
-
         actions_actor_dist = self.actor(observations) 
         actions_actor = actions_actor_dist.rsample() # [B, action_dim]
-        action_size = actions_actor.shape[1]
-        mses = ((actions_actor - actions) ** 2).mean()
-        bc_loss = self.alpha / action_size * mses
 
-        entropy_loss = self.beta * actions_actor_dist.entropy()
+        q_loss = -self.critic(observations, actions_actor).mean()
+
+        mses = ((actions_actor - actions) ** 2).mean() # mean() is already dividing by the action dimension size (it's doing 1/|A|)
+        bc_loss = self.alpha * mses
+
+        log_probs = actions_actor_dist.log_prob(actions_actor)          # [B]
+        entropy_loss = (self.beta().detach() * log_probs).mean()
 
         loss = q_loss + bc_loss + entropy_loss
 
@@ -170,4 +171,6 @@ class SACBCAgent(nn.Module):
 
     def update_target_critic(self) -> None:
         # TODO(student): Update target_critic using Polyak averaging with self.target_update_rate
-        ...
+        with torch.no_grad():
+          for p, p_target in zip(self.critic.parameters(), self.target_critic.parameters()):
+              p_target.data.lerp_(p.data, self.target_update_rate)

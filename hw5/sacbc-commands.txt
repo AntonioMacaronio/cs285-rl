@@ -1,0 +1,13 @@
+# Load wandb credentials from .env (WANDB_API_KEY, WANDB_BASE_URL)
+# Run once per shell session before launching jobs:
+#   set -a; source .env; set +a
+
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=cube-single-play-singletask-task1-v0 --seed=3301 --alpha=30
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=cube-single-play-singletask-task1-v0 --seed=3301 --alpha=100
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=cube-single-play-singletask-task1-v0 --seed=3301 --alpha=300
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=cube-single-play-singletask-task1-v0 --seed=3301 --alpha=1000
+
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=antsoccer-arena-navigate-singletask-task1-v0 --seed=3301 --alpha=1
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=antsoccer-arena-navigate-singletask-task1-v0 --seed=3301 --alpha=3
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=antsoccer-arena-navigate-singletask-task1-v0 --seed=3301 --alpha=10
+uv run src/scripts/run.py --run_group=q1 --base_config=sacbc --env_name=antsoccer-arena-navigate-singletask-task1-v0 --seed=3301 --alpha=30
